@@ -1,1 +1,428 @@
-<h1>Hello World</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#0f766e" />
+<link rel="manifest" href="manifest.json" />
+<title>Didou Health</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#111a2e; --muted:#8aa0c0; --txt:#e8eefc;
+    --accent:#14b8a6; --accent2:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --good:#22c55e;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:env(safe-area-inset-bottom)}
+  body{direction:ltr}
+  body[dir="rtl"]{direction:rtl}
+  header{position:sticky;top:0;z-index:10;background:rgba(11,18,32,.85);
+    backdrop-filter:blur(10px);padding:12px 16px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid #1e2a44}
+  header h1{font-size:18px;margin:0;flex:1}
+  .langsel{display:flex;gap:6px}
+  .langsel button{background:#1b2740;color:var(--txt);border:1px solid #2a3a5c;
+    border-radius:10px;padding:6px 10px;font-size:13px}
+  .langsel button.active{background:var(--accent);border-color:var(--accent);color:#04201d}
+  main{padding:16px;max-width:640px;margin:0 auto}
+  .card{background:var(--card);border:1px solid #1e2a44;border-radius:var(--radius);
+    padding:16px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 12px;color:var(--muted);font-weight:600;
+    text-transform:uppercase;letter-spacing:.5px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row > *{flex:1;min-width:120px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  input,select{width:100%;background:#0e1729;color:var(--txt);border:1px solid #2a3a5c;
+    border-radius:10px;padding:10px;font-size:15px}
+  button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#04201d;border:none;border-radius:12px;padding:12px 16px;font-size:15px;
+    font-weight:700;width:100%;margin-top:10px}
+  button.ghost{background:#1b2740;color:var(--txt);border:1px solid #2a3a5c;
+    border-radius:10px;padding:10px 14px;font-size:14px}
+  .stat{display:flex;justify-content:space-between;padding:8px 0;
+    border-bottom:1px dashed #1e2a44;font-size:15px}
+  .stat:last-child{border-bottom:none}
+  .stat b{color:var(--accent)}
+  .big{font-size:28px;font-weight:800;color:var(--accent)}
+  .muted{color:var(--muted);font-size:13px}
+  .verdict{padding:14px;border-radius:12px;margin-top:10px;font-weight:600}
+  .verdict.good{background:rgba(34,197,94,.12);border:1px solid var(--good);color:#86efac}
+  .verdict.bad{background:rgba(239,68,68,.12);border:1px solid var(--bad);color:#fca5a5}
+  .verdict.warn{background:rgba(245,158,11,.12);border:1px solid var(--warn);color:#fcd34d}
+  video{width:100%;border-radius:12px;background:#000}
+  .hidden{display:none}
+  .pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;
+    background:#1b2740;border:1px solid #2a3a5c;color:var(--muted);margin:2px}
+  .meal{font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="appTitle">Didou Health</h1>
+  <div class="langsel">
+    <button data-lang="en" class="active">EN</button>
+    <button data-lang="fr">FR</button>
+    <button data-lang="ar">AR</button>
+  </div>
+</header>
+
+<main>
+  <!-- PROFILE -->
+  <section class="card">
+    <h2 data-i18n="profile">Profile</h2>
+    <div class="row">
+      <div><label data-i18n="weight">Weight (kg)</label>
+        <input id="weight" type="number" value="96" min="30" max="300" /></div>
+      <div><label data-i18n="height">Height (cm)</label>
+        <input id="height" type="number" value="187" min="120" max="230" /></div>
+      <div><label data-i18n="age">Age</label>
+        <input id="age" type="number" value="24" min="10" max="100" /></div>
+    </div>
+    <button class="primary" id="saveProfile" data-i18n="save">Save</button>
+    <div class="muted" style="margin-top:10px" id="bmiOut"></div>
+  </section>
+
+  <!-- STEPS -->
+  <section class="card">
+    <h2 data-i18n="steps">Steps Today</h2>
+    <div class="row" style="align-items:end">
+      <div><label data-i18n="stepsCount">Steps</label>
+        <input id="steps" type="number" value="0" min="0" step="1" /></div>
+      <div><label data-i18n="stepGoal">Goal</label>
+        <input id="stepGoal" type="number" value="10000" min="1000" step="500" /></div>
+    </div>
+    <div style="margin-top:10px" class="stat"><span data-i18n="progress">Progress</span>
+      <b id="stepProg">0%</b></div>
+    <div class="muted" style="margin-top:6px" data-i18n="stepNote">
+      iPhone Safari cannot read HealthKit, so enter your steps from the Health app each evening.
+    </div>
+    <button class="ghost" style="margin-top:10px;width:100%" id="saveSteps" data-i18n="saveSteps">Save steps</button>
+  </section>
+
+  <!-- RUNNING -->
+  <section class="card">
+    <h2 data-i18n="running">Running</h2>
+    <div class="stat"><span data-i18n="timer">Timer</span><b id="timer">00:00</b></div>
+    <div class="stat"><span data-i18n="kcalBurned">Calories burned</span><b id="kcal">0 kcal</b></div>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" id="startRun" data-i18n="start">Start</button>
+      <button class="ghost" id="stopRun" data-i18n="stop" disabled>Stop</button>
+      <button class="ghost" id="resetRun" data-i18n="reset">Reset</button>
+    </div>
+    <div class="muted" style="margin-top:10px" data-i18n="runNote">
+      Calories estimated from your weight and running MET (~9.8 kcal/kg/h).
+    </div>
+  </section>
+
+  <!-- FOOD -->
+  <section class="card">
+    <h2 data-i18n="food">Today's Food Guidance</h2>
+    <div id="foodOut" class="meal"></div>
+  </section>
+
+  <!-- SCAN -->
+  <section class="card">
+    <h2 data-i18n="scan">Scan a product</h2>
+    <video id="video" autoplay playsinline muted class="hidden"></video>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" id="startScan" data-i18n="startScan">Open camera</button>
+      <button class="ghost" id="stopScan" data-i18n="stopScan" disabled>Close camera</button>
+    </div>
+    <div id="scanOut" class="verdict hidden"></div>
+    <div class="muted" style="margin-top:8px" data-i18n="scanNote">
+      Uses the camera + Open Food Facts database. Some products may not be found.
+    </div>
+  </section>
+</main>
+
+<script>
+/* ---------- i18n ---------- */
+const I18N = {
+  en: {
+    profile:"Profile", weight:"Weight (kg)", height:"Height (cm)", age:"Age",
+    save:"Save profile", steps:"Steps Today", stepsCount:"Steps", stepGoal:"Goal",
+    progress:"Progress", stepNote:"iPhone Safari cannot read HealthKit, so enter your steps from the Health app each evening.",
+    saveSteps:"Save steps", running:"Running", timer:"Timer", kcalBurned:"Calories burned",
+    start:"Start", stop:"Stop", reset:"Reset",
+    runNote:"Calories estimated from your weight and running MET (~9.8 kcal/kg/h).",
+    food:"Today's Food Guidance", scan:"Scan a product",
+    startScan:"Open camera", stopScan:"Close camera",
+    scanNote:"Uses the camera + Open Food Facts database. Some products may not be found.",
+    bmi:"BMI", bmiUnder:"Underweight", bmiNormal:"Normal", bmiOver:"Overweight", bmiObese:"Obese",
+    dailyKcal:"Estimated daily calorie target", protein:"Protein", carbs:"Carbs", fats:"Fats",
+    mealBreak:"Breakfast", mealLunch:"Lunch", mealDinner:"Dinner", mealSnack:"Snack",
+    productGood:"Good choice for your goal.", productBad:"Poor choice — high sugar/salt/fat or ultra-processed.",
+    productWarn:"Average — check the label.", productUnknown:"Product not found in database.",
+    productInfo:"Product", nutriscore:"Nutri-Score", nova:"Nova group",
+    cameraFail:"Camera not available. On iPhone, use Safari (not in-app browsers).",
+    scanHint:"Point the camera at the barcode…",
+    calories:"kcal"
+  },
+  fr: {
+    profile:"Profil", weight:"Poids (kg)", height:"Taille (cm)", age:"Âge",
+    save:"Enregistrer le profil", steps:"Pas aujourd'hui", stepsCount:"Pas", stepGoal:"Objectif",
+    progress:"Progression", stepNote:"Safari sur iPhone ne lit pas HealthKit : saisissez vos pas depuis l'app Santé chaque soir.",
+    saveSteps:"Enregistrer les pas", running:"Course", timer:"Chronomètre", kcalBurned:"Calories brûlées",
+    start:"Démarrer", stop:"Arrêter", reset:"Réinitialiser",
+    runNote:"Calories estimées selon votre poids et le MET de course (~9,8 kcal/kg/h).",
+    food:"Conseils alimentaires du jour", scan:"Scanner un produit",
+    startScan:"Ouvrir la caméra", stopScan:"Fermer la caméra",
+    scanNote:"Utilise la caméra + la base Open Food Facts. Certains produits peuvent être absents.",
+    bmi:"IMC", bmiUnder:"Insuffisance pondérale", bmiNormal:"Normal", bmiOver:"Surpoids", bmiObese:"Obésité",
+    dailyKcal:"Objectif calorique journalier estimé", protein:"Protéines", carbs:"Glucides", fats:"Lipides",
+    mealBreak:"Petit-déjeuner", mealLunch:"Déjeuner", mealDinner:"Dîner", mealSnack:"Collation",
+    productGood:"Bon choix pour votre objectif.", productBad:"Mauvais choix — trop de sucre/sel/gras ou ultra-transformé.",
+    productWarn:"Moyen — vérifiez l'étiquette.", productUnknown:"Produit introuvable dans la base.",
+    productInfo:"Produit", nutriscore:"Nutri-Score", nova:"Groupe Nova",
+    cameraFail:"Caméra indisponible. Sur iPhone, utilisez Safari (pas un navigateur intégré).",
+    scanHint:"Pointez la caméra vers le code-barres…",
+    calories:"kcal"
+  },
+  ar: {
+    profile:"الملف الشخصي", weight:"الوزن (كغ)", height:"الطول (سم)", age:"العمر",
+    save:"حفظ الملف", steps:"خطوات اليوم", stepsCount:"الخطوات", stepGoal:"الهدف",
+    progress:"التقدم", stepNote:"متصفح سفاري على آيفون لا يقرأ HealthKit، أدخل خطواتك من تطبيق الصحة كل مساء.",
+    saveSteps:"حفظ الخطوات", running:"الجري", timer:"المؤقت", kcalBurned:"السعرات المحروقة",
+    start:"بدء", stop:"إيقاف", reset:"إعادة",
+    runNote:"السعرات مقدّرة حسب وزنك ومعدل الجري (~9.8 سعرة/كغ/ساعة).",
+    food:"إرشادات الغذاء اليوم", scan:"امسح منتجاً",
+    startScan:"فتح الكاميرا", stopScan:"إغلاق الكاميرا",
+    scanNote:"يستخدم الكاميرا وقاعدة Open Food Facts. بعض المنتجات قد لا تكون موجودة.",
+    bmi:"مؤشر كتلة الجسم", bmiUnder:"نقص وزن", bmiNormal:"طبيعي", bmiOver:"زيادة وزن", bmiObese:"سمنة",
+    dailyKcal:"هدف السعرات اليومي المقدّر", protein:"بروتين", carbs:"كربوهيدرات", fats:"دهون",
+    mealBreak:"فطور", mealLunch:"غداء", mealDinner:"عشاء", mealSnack:"وجبة خفيفة",
+    productGood:"خيار جيد لهدفك.", productBad:"خيار سيئ — سكر/ملح/دهون عالية أو فائق التصنيع.",
+    productWarn:"متوسط — راجع الملصق.", productUnknown:"المنتج غير موجود في القاعدة.",
+    productInfo:"المنتج", nutriscore:"Nutri-Score", nova:"مجموعة Nova",
+    cameraFail:"الكاميرا غير متاحة. على آيفون استخدم سفاري.",
+    scanHint:"وجّه الكاميرا نحو الباركود…",
+    calories:"سعرة"
+  }
+};
+
+let lang = localStorage.getItem("didou_lang") || "en";
+function t(k){ return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.body.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll(".langsel button").forEach(b=>{
+    b.classList.toggle("active", b.dataset.lang === lang);
+  });
+  renderAll();
+}
+document.querySelectorAll(".langsel button").forEach(b=>{
+  b.onclick = ()=>{ lang = b.dataset.lang; localStorage.setItem("didou_lang", lang); applyLang(); };
+});
+
+/* ---------- profile ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("didou_"+k); return v===null?d:JSON.parse(v);}catch(e){return d} },
+  set(k, v){ localStorage.setItem("didou_"+k, JSON.stringify(v)); }
+};
+const weightEl = document.getElementById("weight");
+const heightEl = document.getElementById("height");
+const ageEl = document.getElementById("age");
+
+function loadProfile(){
+  weightEl.value = store.get("weight", 96);
+  heightEl.value = store.get("height", 187);
+  ageEl.value = store.get("age", 24);
+}
+function currentProfile(){
+  return {
+    weight: parseFloat(weightEl.value)||96,
+    height: parseFloat(heightEl.value)||187,
+    age: parseInt(ageEl.value)||24
+  };
+}
+function renderProfile(){
+  const p = currentProfile();
+  const h = p.height/100;
+  const bmi = p.weight/(h*h);
+  let tag = bmi<18.5?t("bmiUnder"):bmi<25?t("bmiNormal"):bmi<30?t("bmiOver"):t("bmiObese");
+  document.getElementById("bmiOut").textContent = `${t("bmi")}: ${bmi.toFixed(1)} — ${tag}`;
+  renderFood();
+}
+document.getElementById("saveProfile").onclick = ()=>{
+  const p = currentProfile();
+  store.set("weight", p.weight); store.set("height", p.height); store.set("age", p.age);
+  renderProfile();
+};
+
+/* ---------- steps ---------- */
+const stepsEl = document.getElementById("steps");
+const goalEl = document.getElementById("stepGoal");
+function renderSteps(){
+  const s = parseFloat(stepsEl.value)||0;
+  const g = parseFloat(goalEl.value)||10000;
+  document.getElementById("stepProg").textContent = Math.min(100, Math.round(s/g*100)) + "%";
+}
+stepsEl.oninput = renderSteps;
+goalEl.oninput = renderSteps;
+document.getElementById("saveSteps").onclick = ()=>{
+  store.set("steps", parseFloat(stepsEl.value)||0);
+  store.set("stepGoal", parseFloat(goalEl.value)||10000);
+  renderSteps();
+};
+
+/* ---------- running ---------- */
+let runStart = null, runTimer = null, runSeconds = 0;
+const timerEl = document.getElementById("timer");
+const kcalEl = document.getElementById("kcal");
+function fmt(s){ const m=String(Math.floor(s/60)).padStart(2,"0"); const ss=String(s%60).padStart(2,"0"); return m+":"+ss; }
+function renderRun(){
+  timerEl.textContent = fmt(runSeconds);
+  const p = currentProfile();
+  const hours = runSeconds/3600;
+  const kcal = Math.round(9.8 * p.weight * hours);
+  kcalEl.textContent = kcal + " " + t("calories");
+}
+document.getElementById("startRun").onclick = ()=>{
+  if(runTimer) return;
+  document.getElementById("startRun").disabled = true;
+  document.getElementById("stopRun").disabled = false;
+  runStart = Date.now() - runSeconds*1000;
+  runTimer = setInterval(()=>{
+    runSeconds = Math.floor((Date.now()-runStart)/1000);
+    renderRun();
+  }, 250);
+};
+document.getElementById("stopRun").onclick = ()=>{
+  clearInterval(runTimer); runTimer = null;
+  document.getElementById("startRun").disabled = false;
+  document.getElementById("stopRun").disabled = true;
+  const history = store.get("runs", []);
+  history.push({date:new Date().toISOString(), seconds:runSeconds});
+  store.set("runs", history);
+};
+document.getElementById("resetRun").onclick = ()=>{
+  clearInterval(runTimer); runTimer=null; runSeconds=0;
+  document.getElementById("startRun").disabled = false;
+  document.getElementById("stopRun").disabled = true;
+  renderRun();
+};
+
+/* ---------- food guidance ---------- */
+function renderFood(){
+  const p = currentProfile();
+  // Mifflin-St Jeor (male assumption; adjust if needed)
+  const bmr = 10*p.weight + 6.25*p.height - 5*p.age + 5;
+  const tdee = Math.round(bmr * 1.4); // moderately active (daily running)
+  const target = Math.round(tdee - 500); // 500 kcal deficit
+  const protein = Math.round(p.weight * 1.6);
+  const fats = Math.round(target*0.25/9);
+  const carbs = Math.round((target - protein*4 - fats*9)/4);
+  document.getElementById("foodOut").innerHTML = `
+    <div class="stat"><span>${t("dailyKcal")}</span><b>${target} ${t("calories")}</b></div>
+    <div class="stat"><span>${t("protein")}</span><b>${protein} g</b></div>
+    <div class="stat"><span>${t("carbs")}</span><b>${carbs} g</b></div>
+    <div class="stat"><span>${t("fats")}</span><b>${fats} g</b></div>
+    <div style="margin-top:12px">
+      <div class="pill">${t("mealBreak")}: oats + eggs + fruit</div>
+      <div class="pill">${t("mealLunch")}: grilled chicken/fish + rice + salad</div>
+      <div class="pill">${t("mealDinner")}: lentils/beans + vegetables + olive oil</div>
+      <div class="pill">${t("mealSnack")}: yogurt + nuts</div>
+    </div>
+  `;
+}
+
+/* ---------- barcode scan ---------- */
+let stream = null, scanLoop = null;
+const video = document.getElementById("video");
+const scanOut = document.getElementById("scanOut");
+
+async function startScan(){
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    video.srcObject = stream; video.classList.remove("hidden");
+    document.getElementById("startScan").disabled = true;
+    document.getElementById("stopScan").disabled = false;
+    scanOut.classList.add("hidden");
+    if("BarcodeDetector" in window){
+      const detector = new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]});
+      scanLoop = setInterval(async ()=>{
+        try{
+          const codes = await detector.detect(video);
+          if(codes.length){ handleBarcode(codes[0].rawValue); stopScan(); }
+        }catch(e){}
+      }, 500);
+    } else {
+      scanOut.textContent = "BarcodeDetector not supported on this browser. Use the manual lookup below.";
+      scanOut.className = "verdict warn";
+      scanOut.classList.remove("hidden");
+    }
+  }catch(e){
+    scanOut.textContent = t("cameraFail");
+    scanOut.className = "verdict bad";
+    scanOut.classList.remove("hidden");
+  }
+}
+function stopScan(){
+  if(scanLoop){ clearInterval(scanLoop); scanLoop=null; }
+  if(stream){ stream.getTracks().forEach(tr=>tr.stop()); stream=null; }
+  video.classList.add("hidden");
+  document.getElementById("startScan").disabled = false;
+  document.getElementById("stopScan").disabled = true;
+}
+document.getElementById("startScan").onclick = startScan;
+document.getElementById("stopScan").onclick = stopScan;
+
+async function handleBarcode(code){
+  scanOut.classList.remove("hidden");
+  scanOut.className = "verdict warn";
+  scanOut.textContent = t("scanHint") + " (" + code + ")";
+  try{
+    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,brands,nutriscore_grade,nova_group,nutriments`);
+    const j = await r.json();
+    if(!j || j.status === 0 || !j.product){
+      scanOut.className = "verdict bad";
+      scanOut.textContent = t("productUnknown") + " (" + code + ")";
+      return;
+    }
+    const p = j.product;
+    const ns = (p.nutriscore_grade||"?").toLowerCase();
+    const nova = p.nova_group||"?";
+    let verdict, cls;
+    if(ns === "a" || ns === "b"){ verdict = t("productGood"); cls="good"; }
+    else if(ns === "d" || ns === "e" || nova === 4){ verdict = t("productBad"); cls="bad"; }
+    else { verdict = t("productWarn"); cls="warn"; }
+    scanOut.className = "verdict " + cls;
+    scanOut.innerHTML = `
+      <div><b>${p.product_name || p.brands || t("productInfo")}</b></div>
+      <div class="muted">${t("nutriscore")}: ${ns.toUpperCase()} • ${t("nova")}: ${nova}</div>
+      <div style="margin-top:6px">${verdict}</div>
+    `;
+  }catch(e){
+    scanOut.className = "verdict bad";
+    scanOut.textContent = "Network error. Try again.";
+  }
+}
+
+/* ---------- init ---------- */
+function renderAll(){
+  renderProfile();
+  renderSteps();
+  renderRun();
+  renderFood();
+}
+loadProfile();
+applyLang();
+renderSteps();
+renderRun();
+renderProfile();
+
+/* service worker */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
